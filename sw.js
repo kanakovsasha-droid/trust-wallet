@@ -1,10 +1,12 @@
-const CACHE = 'wallet-v1';
+const CACHE = 'wallet-v2';
 const ASSETS = [
   './',
   './index.html',
   './manifest.webmanifest',
   './icon.png',
-  './uploads/ui.jpg'
+  './uploads/ui.jpg',
+  './scrap/current.png',
+  './scrap/v2.png'
 ];
 
 self.addEventListener('install', e => {
