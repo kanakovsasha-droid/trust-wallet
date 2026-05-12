@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<title>Wallet</title>
+
+<!-- iOS PWA: add to home screen acts like a native app -->
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Wallet" />
+<meta name="theme-color" content="#000000" />
+
+<!-- Touch icon for the home screen -->
+<link rel="apple-touch-icon" href="icon.png" />
+<link rel="icon" href="icon.png" />
+
+<link rel="manifest" href="manifest.webmanifest" />
+
+<style>
+  :root{
+    --bg:#000;
+    --surface:#1c1c1c;
+    --surface-2:#262626;
+    --muted:#8a8a8a;
+    --muted-2:#6f6f6f;
+    --text:#fff;
+    --green:#62f7a8;     /* primary accent */
+    --green-2:#4be08e;
+    --red-dot:#ff3b30;
+    --yellow:#ffd23a;
+  }
+
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Helvetica Neue",Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    overscroll-behavior-y:none;
+  }
+  body{
+    min-height:100vh;
+    padding-top:env(safe-area-inset-top);
+    padding-bottom:env(safe-area-inset-bottom);
+  }
+
+  /* Status bar */
+  .statusbar{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:18px 32px 6px;
+    font-weight:600;font-size:17px;
+    letter-spacing:.2px;
+  }
+  .statusbar .time{font-weight:600}
+  .statusbar .icons{display:flex;align-items:center;gap:6px}
+  .statusbar svg{display:block}
+
+  /* Top bar: gear (avatar), search, scan */
+  .topbar{
+    display:flex;align-items:center;gap:12px;
+    padding:8px 16px 4px;
+  }
+  .iconbtn{
+    width:44px;height:44px;border-radius:50%;
+    display:grid;place-items:center;
+    background:transparent;border:none;color:#fff;
+    position:relative;cursor:pointer;
+    flex:0 0 auto;
+  }
+  .iconbtn svg{width:24px;height:24px;display:block}
+  .iconbtn .reddot{
+    position:absolute;top:6px;right:8px;
+    width:8px;height:8px;border-radius:50%;
+    background:var(--red-dot);
+    box-shadow:0 0 0 2px #000;
+  }
+  .search{
+    flex:1;height:44px;border-radius:22px;background:#222;
+    display:flex;align-items:center;gap:10px;padding:0 18px;
+    color:var(--muted);font-size:17px;
+  }
+  .search svg{width:18px;height:18px;opacity:.7}
+
+  /* Wallet selector */
+  .wallet-row{
+    display:flex;align-items:center;justify-content:center;gap:10px;
+    padding:24px 16px 8px;
+  }
+  .wallet-pill{
+    display:inline-flex;align-items:center;gap:8px;
+    background:#1f1f1f;color:#fff;
+    padding:9px 16px;border-radius:999px;
+    font-size:16px;font-weight:500;border:none;cursor:pointer;
+    position:relative;
+  }
+  .wallet-pill .chev{opacity:.8}
+  .wallet-pill .reddot{
+    position:absolute;top:-2px;right:-2px;
+    width:9px;height:9px;border-radius:50%;
+    background:var(--red-dot);box-shadow:0 0 0 2px #000;
+  }
+  .copy-btn{
+    width:36px;height:36px;display:grid;place-items:center;
+    background:transparent;border:none;color:#bdbdbd;cursor:pointer;
+  }
+  .copy-btn svg{width:22px;height:22px}
+
+  /* Balance */
+  .balance{
+    text-align:center;margin-top:18px;
+  }
+  .balance .big{
+    font-size:64px;font-weight:700;letter-spacing:-1.5px;line-height:1;
+    cursor:pointer;
+  }
+  .balance .sub{
+    color:#9a9a9a;margin-top:10px;font-size:18px;font-weight:500;
+  }
+
+  /* Action row */
+  .actions{
+    display:grid;grid-template-columns:repeat(4,1fr);
+    gap:14px;padding:28px 22px 8px;
+  }
+  .action{
+    display:flex;flex-direction:column;align-items:center;gap:10px;
+    background:transparent;border:none;color:#fff;cursor:pointer;
+  }
+  .action .tile{
+    width:64px;height:64px;border-radius:18px;
+    background:#262626;display:grid;place-items:center;
+  }
+  .action.primary .tile{background:var(--green);color:#0a0a0a}
+  .action .tile svg{width:30px;height:30px}
+  .action .label{font-size:16px;font-weight:600}
+
+  /* Promo banner */
+  .promo{
+    margin:22px 16px 0;
+    background:#1c1c1c;border-radius:22px;padding:14px 16px;
+    display:flex;align-items:center;gap:14px;
+    position:relative;overflow:hidden;
+  }
+  .promo .corner{
+    position:absolute;top:0;left:0;
+    width:44px;height:44px;background:var(--yellow);
+    border-bottom-right-radius:14px;
+    display:grid;place-items:center;
+  }
+  .promo .corner svg{width:22px;height:22px;color:#1a1a1a}
+  .promo .art{
+    width:74px;height:74px;flex:0 0 74px;margin-left:30px;
+    border-radius:14px;display:grid;place-items:center;
+    background:radial-gradient(circle at 35% 35%, #34d3ff 0%, #2767e8 45%, #6a2bd1 90%);
+    overflow:hidden;position:relative;
+  }
+  .promo .art svg{width:100%;height:100%}
+  .promo .txt{flex:1;min-width:0}
+  .promo .txt p{margin:0;font-size:15px;line-height:1.25;font-weight:500}
+  .promo .cta{
+    color:var(--green);font-weight:600;font-size:14px;
+    margin-top:6px;display:inline-flex;align-items:center;gap:6px;
+  }
+
+  /* Dots */
+  .dots{display:flex;justify-content:center;gap:6px;margin-top:18px}
+  .dots span{width:18px;height:5px;border-radius:3px;background:#3a3a3a}
+  .dots span.active{background:#bdbdbd;width:24px}
+
+  /* Tabs */
+  .tabs{
+    display:flex;align-items:center;gap:22px;
+    padding:14px 16px 0;position:relative;
+  }
+  .tab{
+    font-size:20px;font-weight:700;color:#5a5a5a;
+    background:none;border:none;cursor:pointer;padding:6px 0 10px;
+    position:relative;
+  }
+  .tab.active{color:#fff}
+  .tab.active::after{
+    content:"";position:absolute;left:0;right:0;bottom:0;
+    height:3px;background:var(--green);border-radius:2px;
+  }
+  .tabs .spacer{flex:1}
+  .tabs .icobtn{
+    background:none;border:none;color:#bdbdbd;cursor:pointer;
+    padding:6px;
+  }
+  .tabs .icobtn svg{width:22px;height:22px;display:block}
+
+  /* Empty state */
+  .empty{
+    margin:18px 12px 0;
+    background:#181818;border-radius:24px;
+    padding:26px 18px 30px;
+    text-align:center;
+  }
+  .empty .illust{width:130px;height:130px;margin:6px auto 10px;display:block}
+  .empty h3{margin:8px 0 0;font-size:22px;font-weight:600;line-height:1.25}
+  .empty .btn{
+    display:block;width:100%;margin-top:18px;
+    height:54px;border-radius:28px;border:none;cursor:pointer;
+    background:var(--green);color:#0a0a0a;font-size:17px;font-weight:700;
+  }
+  .empty .btn.outline{
+    background:#1a1a1a;color:var(--green);
+    border:1.5px solid rgba(98,247,168,.35);
+    margin-top:10px;
+  }
+
+  /* Bottom nav */
+  .navspace{height:120px}
+  .nav{
+    position:fixed;left:0;right:0;bottom:0;
+    background:rgba(0,0,0,.92);
+    backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+    padding:8px 8px calc(8px + env(safe-area-inset-bottom));
+    display:grid;grid-template-columns:repeat(5,1fr);
+    align-items:end;
+    border-top:1px solid #111;
+  }
+  .nav .item{
+    background:none;border:none;cursor:pointer;color:#9a9a9a;
+    display:flex;flex-direction:column;align-items:center;gap:4px;
+    padding:6px 0;font-size:12px;font-weight:600;
+  }
+  .nav .item svg{width:26px;height:26px;display:block}
+  .nav .item.active{color:#fff}
+  .nav .item.active .ico-wrap{
+    background:rgba(98,247,168,.12);
+    border-radius:14px;padding:4px 14px;
+  }
+  .nav .item.active .ico-wrap svg{color:var(--green)}
+  .nav .center{
+    position:relative;transform:translateY(-22px);
+  }
+  .nav .center .circle{
+    width:62px;height:62px;border-radius:50%;
+    background:var(--green);display:grid;place-items:center;
+    box-shadow:0 8px 24px rgba(98,247,168,.35);
+  }
+  .nav .center .circle svg{width:30px;height:30px;color:#0a0a0a}
+  .nav .center .label{margin-top:6px;font-size:12px;font-weight:600;color:#fff}
+
+  /* Modal */
+  .modal-backdrop{
+    position:fixed;inset:0;background:rgba(0,0,0,.55);
+    display:none;align-items:flex-end;justify-content:center;
+    z-index:50;
+    -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
+  }
+  .modal-backdrop.open{display:flex;animation:fade .2s ease}
+  @keyframes fade{from{opacity:0}to{opacity:1}}
+  .sheet{
+    width:100%;max-width:520px;
+    background:#121212;
+    border-radius:28px 28px 0 0;
+    padding:14px 22px 32px;
+    padding-bottom:calc(32px + env(safe-area-inset-bottom));
+    animation:slide .28s cubic-bezier(.2,.8,.2,1);
+  }
+  @keyframes slide{from{transform:translateY(100%)}to{transform:translateY(0)}}
+  .sheet .grab{
+    width:42px;height:5px;border-radius:3px;background:#3a3a3a;
+    margin:0 auto 14px;
+  }
+  .sheet h2{margin:4px 0 4px;font-size:22px;font-weight:700}
+  .sheet p.hint{margin:0 0 18px;color:#9a9a9a;font-size:14px}
+  .field{margin-top:14px}
+  .field label{display:block;font-size:13px;color:#9a9a9a;margin-bottom:8px;font-weight:500}
+  .field input{
+    width:100%;height:54px;border-radius:16px;
+    background:#1e1e1e;border:1px solid #2a2a2a;
+    color:#fff;font-size:18px;padding:0 16px;
+    font-family:inherit;font-weight:600;
+    outline:none;
+  }
+  .field input:focus{border-color:var(--green)}
+  .sheet .row{display:flex;gap:10px;margin-top:22px}
+  .sheet .btn{
+    flex:1;height:52px;border-radius:26px;border:none;cursor:pointer;
+    font-size:16px;font-weight:700;font-family:inherit;
+  }
+  .sheet .btn.primary{background:var(--green);color:#0a0a0a}
+  .sheet .btn.ghost{background:#1e1e1e;color:#fff}
+
+  /* iOS install hint */
+  .install-hint{
+    position:fixed;left:12px;right:12px;bottom:16px;
+    background:#1c1c1c;border:1px solid #2a2a2a;border-radius:18px;
+    padding:12px 14px;display:none;align-items:center;gap:10px;z-index:80;
+    font-size:13px;color:#ddd;
+  }
+  .install-hint.show{display:flex}
+  .install-hint .close{margin-left:auto;background:none;border:none;color:#9a9a9a;font-size:18px;cursor:pointer}
+</style>
+</head>
+<body>
+
+<!-- ───────────── Status bar ───────────── -->
+<div class="statusbar">
+  <div class="time" id="time">12:19</div>
+  <div class="icons">
+    <!-- signal (3.5 bars look) -->
+    <svg width="20" height="14" viewBox="0 0 20 14" fill="none">
+      <rect x="0"  y="9" width="3" height="5" rx="1" fill="#fff"/>
+      <rect x="5"  y="6" width="3" height="8" rx="1" fill="#fff"/>
+      <rect x="10" y="3" width="3" height="11" rx="1" fill="#fff"/>
+      <rect x="15" y="0" width="3" height="14" rx="1" fill="#ff3b30"/>
+    </svg>
+    <!-- wifi -->
+    <svg width="18" height="14" viewBox="0 0 18 14" fill="none">
+      <path d="M1 4.5A12 12 0 0 1 17 4.5" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/>
+      <path d="M3.5 7.5A8.5 8.5 0 0 1 14.5 7.5" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/>
+      <path d="M6 10.5A4.5 4.5 0 0 1 12 10.5" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/>
+      <circle cx="9" cy="12.5" r="1.2" fill="#fff"/>
+    </svg>
+    <!-- battery -->
+    <svg width="28" height="14" viewBox="0 0 28 14" fill="none">
+      <rect x="0.5" y="0.5" width="24" height="13" rx="3.5" stroke="#fff" stroke-opacity=".6"/>
+      <rect x="26" y="4.5" width="2" height="5" rx="1" fill="#fff" fill-opacity=".6"/>
+      <rect x="2" y="2" width="8" height="10" rx="2" fill="#fff"/>
+    </svg>
+  </div>
+</div>
+
+<!-- ───────────── Top bar ───────────── -->
+<div class="topbar">
+  <button class="iconbtn" id="avatarBtn" aria-label="Edit wallet">
+    <!-- Gear (the "avatar" tap target — opens edit sheet) -->
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.04 1.56V21a2 2 0 0 1-4 0v-.08a1.7 1.7 0 0 0-1.11-1.56 1.7 1.7 0 0 0-1.87.34l-.06.06A2 2 0 1 1 4.13 16.93l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.56-1.04H3a2 2 0 0 1 0-4h.08a1.7 1.7 0 0 0 1.56-1.11 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34h.06a1.7 1.7 0 0 0 1.04-1.56V3a2 2 0 0 1 4 0v.08a1.7 1.7 0 0 0 1.04 1.56 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87v.06a1.7 1.7 0 0 0 1.56 1.04H21a2 2 0 0 1 0 4h-.08a1.7 1.7 0 0 0-1.56 1.04Z"/>
+    </svg>
+    <span class="reddot"></span>
+  </button>
+
+  <div class="search">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+      <circle cx="11" cy="11" r="7"/>
+      <path d="m20 20-3.5-3.5"/>
+    </svg>
+    <span>Search</span>
+  </div>
+
+  <button class="iconbtn" aria-label="Scan">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 8V6a2 2 0 0 1 2-2h2"/>
+      <path d="M20 8V6a2 2 0 0 0-2-2h-2"/>
+      <path d="M4 16v2a2 2 0 0 0 2 2h2"/>
+      <path d="M20 16v2a2 2 0 0 1-2 2h-2"/>
+      <path d="M7 12h10"/>
+    </svg>
+  </button>
+</div>
+
+<!-- ───────────── Wallet selector ───────────── -->
+<div class="wallet-row">
+  <button class="wallet-pill" id="walletPill">
+    <span id="walletName">Основной кошелек</span>
+    <svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+      <path d="m9 6 6 6-6 6"/>
+    </svg>
+    <span class="reddot"></span>
+  </button>
+  <button class="copy-btn" aria-label="Copy address">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="9" y="9" width="11" height="11" rx="2.5"/>
+      <path d="M5 15V6a2 2 0 0 1 2-2h9"/>
+    </svg>
+  </button>
+</div>
+
+<!-- ───────────── Balance ───────────── -->
+<div class="balance">
+  <div class="big" id="balanceBig">$0.00</div>
+  <div class="sub"><span id="balanceDelta">$0.00</span> (<span id="balancePct">0.00</span>%)</div>
+</div>
+
+<!-- ───────────── Action row ───────────── -->
+<div class="actions">
+  <button class="action">
+    <span class="tile">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M7 17 17 7"/><path d="M9 7h8v8"/>
+      </svg>
+    </span>
+    <span class="label">Send</span>
+  </button>
+  <button class="action">
+    <span class="tile">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 5v14"/><path d="m6 13 6 6 6-6"/>
+      </svg>
+    </span>
+    <span class="label">Receive</span>
+  </button>
+  <button class="action">
+    <span class="tile">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 8h13l-3-3"/>
+        <path d="M20 16H7l3 3"/>
+      </svg>
+    </span>
+    <span class="label">Swap</span>
+  </button>
+  <button class="action primary">
+    <span class="tile">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+        <path d="M12 5v14"/><path d="M5 12h14"/>
+      </svg>
+    </span>
+    <span class="label">Buy</span>
+  </button>
+</div>
+
+<!-- ───────────── Promo banner ───────────── -->
+<div class="promo">
+  <div class="corner">
+    <!-- flame/drop -->
+    <svg viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 2s5 5.5 5 10a5 5 0 1 1-10 0c0-2 1.2-3.6 2.5-5C11 5.5 12 4 12 2Z"/>
+    </svg>
+  </div>
+  <div class="art" aria-hidden="true">
+    <!-- abstract infinity/ribbon -->
+    <svg viewBox="0 0 100 100">
+      <defs>
+        <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#7af0ff"/>
+          <stop offset=".5" stop-color="#3e84ff"/>
+          <stop offset="1" stop-color="#b35bff"/>
+        </linearGradient>
+        <linearGradient id="g2" x1="0" y1="1" x2="1" y2="0">
+          <stop offset="0" stop-color="#ff8fd6"/>
+          <stop offset="1" stop-color="#5f48ff"/>
+        </linearGradient>
+      </defs>
+      <path d="M20 55c0-12 18-22 30-10s30 22 30 10S62 33 50 45 20 67 20 55Z"
+            fill="none" stroke="url(#g1)" stroke-width="9" stroke-linecap="round"/>
+      <path d="M22 58c2 8 14 12 22 6" fill="none" stroke="url(#g2)" stroke-width="5" stroke-linecap="round"/>
+      <circle cx="44" cy="40" r="7" fill="#dff7ff" stroke="#1c1c2e" stroke-width="2"/>
+      <circle cx="44" cy="40" r="2.5" fill="#1c1c2e"/>
+    </svg>
+  </div>
+  <div class="txt">
+    <p>Hyperliquid live with 200+ markets, 0% markup on fees</p>
+    <span class="cta">Explore now
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+        <path d="M5 12h14"/><path d="m13 6 6 6-6 6"/>
+      </svg>
+    </span>
+  </div>
+</div>
+
+<!-- Pagination dots -->
+<div class="dots"><span class="active"></span><span></span></div>
+
+<!-- ───────────── Tabs ───────────── -->
+<div class="tabs">
+  <button class="tab active">Crypto</button>
+  <button class="tab">Watchlist</button>
+  <button class="tab">NFTs</button>
+  <div class="spacer"></div>
+  <button class="icobtn" aria-label="History">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 12a9 9 0 1 0 3-6.7"/>
+      <path d="M3 4v5h5"/>
+      <path d="M12 7v5l3 2"/>
+    </svg>
+  </button>
+  <button class="icobtn" aria-label="Filters">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+      <path d="M4 7h10"/><circle cx="17" cy="7" r="2.2"/>
+      <path d="M20 13H10"/><circle cx="7" cy="13" r="2.2"/>
+      <path d="M4 19h10"/><circle cx="17" cy="19" r="2.2"/>
+    </svg>
+  </button>
+</div>
+
+<!-- ───────────── Empty state ───────────── -->
+<div class="empty">
+  <!-- pixel wallet illustration -->
+  <svg class="illust" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="wg" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#aef9d6"/>
+        <stop offset="1" stop-color="#3ddc97"/>
+      </linearGradient>
+    </defs>
+    <!-- top flap -->
+    <path d="M30 70 L150 30 L160 70 Z" fill="#1a1a1a" stroke="#62f7a8" stroke-width="2"/>
+    <!-- grid pattern on flap -->
+    <g stroke="#62f7a8" stroke-width="1" opacity=".6">
+      <line x1="50" y1="60" x2="155" y2="35"/>
+      <line x1="70" y1="50" x2="158" y2="50"/>
+    </g>
+    <!-- pin -->
+    <circle cx="120" cy="36" r="3" fill="#62f7a8"/>
+    <path d="M120 36 L120 26" stroke="#62f7a8" stroke-width="1.5"/>
+    <path d="M118 26 L125 22 L122 30 Z" fill="#62f7a8"/>
+    <!-- wallet body (gameboy-ish) -->
+    <rect x="25" y="65" width="135" height="100" rx="8" fill="url(#wg)" stroke="#1a1a1a" stroke-width="2"/>
+    <!-- screen -->
+    <rect x="55" y="80" width="70" height="40" rx="4" fill="#2bd29a" stroke="#1a1a1a" stroke-width="2"/>
+    <!-- d-pad -->
+    <g fill="#1a1a1a">
+      <rect x="40" y="135" width="22" height="6" rx="1"/>
+      <rect x="48" y="127" width="6" height="22" rx="1"/>
+    </g>
+    <!-- a/b buttons -->
+    <circle cx="120" cy="140" r="5" fill="#1a1a1a"/>
+    <circle cx="135" cy="135" r="5" fill="#1a1a1a"/>
+    <!-- coin/round on side -->
+    <circle cx="170" cy="115" r="14" fill="#aef9d6" stroke="#1a1a1a" stroke-width="2"/>
+    <circle cx="170" cy="115" r="6" fill="#1a1a1a"/>
+  </svg>
+
+  <h3>Fund your wallet<br/>to start trading and earning</h3>
+
+  <button class="btn">Fund</button>
+  <button class="btn outline">Receive crypto</button>
+</div>
+
+<div class="navspace"></div>
+
+<!-- ───────────── Bottom nav ───────────── -->
+<nav class="nav">
+  <button class="item active">
+    <span class="ico-wrap">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 11 12 3l9 8"/>
+        <path d="M5 10v10h14V10"/>
+      </svg>
+    </span>
+    <span>Home</span>
+  </button>
+  <button class="item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 17 9 11l4 4 8-8"/>
+      <path d="M14 4h7v7"/>
+    </svg>
+    <span>Trending</span>
+  </button>
+  <div class="item center">
+    <div class="circle">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 8h13l-3-3"/>
+        <path d="M20 16H7l3 3"/>
+      </svg>
+    </div>
+    <span class="label">Trade</span>
+  </div>
+  <button class="item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="8" width="18" height="5" rx="1"/>
+      <path d="M12 8v13"/>
+      <path d="M5 13v8h14v-8"/>
+      <path d="M12 8c-2-3-6-3-6-1s2 2 6 1Z"/>
+      <path d="M12 8c2-3 6-3 6-1s-2 2-6 1Z"/>
+    </svg>
+    <span>Rewards</span>
+  </button>
+  <button class="item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="9"/>
+      <path d="m15 9-2 5-5 2 2-5 5-2Z"/>
+    </svg>
+    <span>Discover</span>
+  </button>
+</nav>
+
+<!-- ───────────── Edit sheet ───────────── -->
+<div class="modal-backdrop" id="modal">
+  <form class="sheet" id="editForm">
+    <div class="grab"></div>
+    <h2>Изменить кошелек</h2>
+    <p class="hint">Поменяй имя и баланс — данные сохраняются на устройстве.</p>
+    <div class="field">
+      <label for="nameInp">Имя кошелька</label>
+      <input id="nameInp" type="text" maxlength="40" autocomplete="off" />
+    </div>
+    <div class="field">
+      <label for="balInp">Баланс, $</label>
+      <input id="balInp" type="text" inputmode="decimal" autocomplete="off" />
+    </div>
+    <div class="field">
+      <label for="pctInp">Изменение (%)</label>
+      <input id="pctInp" type="text" inputmode="decimal" autocomplete="off" />
+    </div>
+    <div class="row">
+      <button type="button" class="btn ghost" id="cancelBtn">Отмена</button>
+      <button type="submit" class="btn primary">Сохранить</button>
+    </div>
+  </form>
+</div>
+
+<!-- iOS install hint (shown only in Safari, not when running as PWA) -->
+<div class="install-hint" id="installHint">
+  <span>📲 Чтобы как приложение: <b>Поделиться</b> → <b>На экран «Домой»</b></span>
+  <button class="close" id="closeHint">✕</button>
+</div>
+
+<script>
+  // ───────── State persistence ─────────
+  const STORE_KEY = 'wallet-state-v1';
+  const defaultState = {
+    name: 'Основной кошелек',
+    balance: 0,
+    pct: 0
+  };
+  function loadState(){
+    try{ return {...defaultState, ...JSON.parse(localStorage.getItem(STORE_KEY)||'{}')}; }
+    catch(e){ return {...defaultState}; }
+  }
+  function saveState(s){ localStorage.setItem(STORE_KEY, JSON.stringify(s)); }
+
+  const state = loadState();
+
+  // ───────── Format helpers ─────────
+  const fmtMoney = (n) => {
+    const sign = n < 0 ? '-' : '';
+    const v = Math.abs(Number(n)||0);
+    return sign + '$' + v.toLocaleString('en-US',{minimumFractionDigits:2, maximumFractionDigits:2});
+  };
+  const fmtPct = (n) => (Number(n)||0).toFixed(2);
+
+  // ───────── Render ─────────
+  function render(){
+    document.getElementById('walletName').textContent = state.name || 'Основной кошелек';
+    document.getElementById('balanceBig').textContent = fmtMoney(state.balance);
+    // delta = balance * pct/100
+    const delta = (Number(state.balance)||0) * (Number(state.pct)||0) / 100;
+    document.getElementById('balanceDelta').textContent = fmtMoney(delta);
+    document.getElementById('balancePct').textContent = fmtPct(state.pct);
+  }
+  render();
+
+  // ───────── Time auto-update in status bar ─────────
+  function updateTime(){
+    const d = new Date();
+    const hh = String(d.getHours()).padStart(2,'0');
+    const mm = String(d.getMinutes()).padStart(2,'0');
+    document.getElementById('time').textContent = `${hh}:${mm}`;
+  }
+  updateTime();
+  setInterval(updateTime, 30_000);
+
+  // ───────── Edit modal ─────────
+  const modal = document.getElementById('modal');
+  const openEdit = ()=>{
+    document.getElementById('nameInp').value = state.name;
+    document.getElementById('balInp').value = state.balance;
+    document.getElementById('pctInp').value = state.pct;
+    modal.classList.add('open');
+    setTimeout(()=>document.getElementById('nameInp').focus(), 200);
+  };
+  const closeEdit = ()=> modal.classList.remove('open');
+
+  document.getElementById('avatarBtn').addEventListener('click', openEdit);
+  // bonus: long press on balance also opens editor
+  document.getElementById('balanceBig').addEventListener('click', openEdit);
+
+  document.getElementById('cancelBtn').addEventListener('click', closeEdit);
+  modal.addEventListener('click', (e)=>{ if(e.target===modal) closeEdit(); });
+
+  document.getElementById('editForm').addEventListener('submit', (e)=>{
+    e.preventDefault();
+    const name = document.getElementById('nameInp').value.trim() || 'Основной кошелек';
+    const balRaw = document.getElementById('balInp').value.replace(/\s|\$/g,'').replace(',','.');
+    const pctRaw = document.getElementById('pctInp').value.replace(/\s|%/g,'').replace(',','.');
+    state.name = name;
+    state.balance = parseFloat(balRaw);  if(!isFinite(state.balance)) state.balance = 0;
+    state.pct     = parseFloat(pctRaw);  if(!isFinite(state.pct))     state.pct     = 0;
+    saveState(state);
+    render();
+    closeEdit();
+  });
+
+  // ───────── Bottom tab toggling (cosmetic) ─────────
+  document.querySelectorAll('.nav .item:not(.center)').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('.nav .item').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+  document.querySelectorAll('.tabs .tab').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('.tabs .tab').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+
+  // ───────── iOS install hint ─────────
+  (function(){
+    const isiOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const standalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
+    if(isiOS && !standalone && !localStorage.getItem('hide-install-hint')){
+      setTimeout(()=> document.getElementById('installHint').classList.add('show'), 1500);
+    }
+    document.getElementById('closeHint').addEventListener('click', ()=>{
+      document.getElementById('installHint').classList.remove('show');
+      localStorage.setItem('hide-install-hint','1');
+    });
+  })();
+</script>
+
+<script>
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.register('./sw.js');
+  }
+</script>
+</body>
+</html>
