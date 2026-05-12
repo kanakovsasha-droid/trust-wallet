@@ -3,244 +3,131 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
-<title>Wallet</title>
+<title>Trust</title>
 
 <!-- iOS PWA -->
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<meta name="apple-mobile-web-app-title" content="Wallet" />
-<meta name="theme-color" content="#000000" />
+<meta name="apple-mobile-web-app-title" content="Trust" />
+<meta name="theme-color" content="#0d0e10" />
 <link rel="apple-touch-icon" href="icon.png" />
 <link rel="icon" href="icon.png" />
 <link rel="manifest" href="manifest.webmanifest" />
 
 <style>
   :root{
-    --bg:#000;
-    --card:#1c1c1e;
-    --tile:#2a2a2c;
-    --muted:#8a8a8e;
-    --muted-2:#6b6b70;
+    --bg:#0d0e10;
+    --green:#4ef595;
     --text:#fff;
-    --green:#5de58e;
-    --green-soft:rgba(93,229,142,.14);
-    --red:#ff3b30;
-    --yellow:#ffd23a;
+    --muted:#9a9a9e;
   }
 
-  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
+  html,body{margin:0;padding:0;background:#000;color:var(--text);
     font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Helvetica Neue",Arial,sans-serif;
-    -webkit-font-smoothing:antialiased;
-    overscroll-behavior-y:none;
-  }
-  body{
-    min-height:100vh;
-    padding-top:env(safe-area-inset-top);
-    padding-bottom:env(safe-area-inset-bottom);
+    -webkit-font-smoothing:antialiased;overscroll-behavior-y:none;
   }
 
-  /* ───────── Top bar ───────── */
-  .topbar{
-    display:flex;align-items:center;gap:10px;
-    padding:14px 16px 4px;
-  }
-  .gear{
-    width:36px;height:36px;flex:0 0 36px;
-    background:transparent;border:none;color:#fff;cursor:pointer;
-    display:grid;place-items:center;position:relative;
-    padding:0;
-  }
-  .gear svg{width:28px;height:28px;display:block}
-  .gear .dot{
-    position:absolute;top:1px;right:2px;
-    width:9px;height:9px;border-radius:50%;background:var(--red);
-    box-shadow:0 0 0 2px #000;
-  }
-  .search{
-    flex:1;height:44px;border-radius:22px;background:var(--card);
-    display:flex;align-items:center;justify-content:center;gap:10px;
-    padding:0 18px;color:var(--muted);font-size:17px;font-weight:400;
-  }
-  .search svg{width:18px;height:18px;opacity:.85}
-  .scan{
-    width:36px;height:36px;flex:0 0 36px;
-    background:transparent;border:none;color:#fff;cursor:pointer;
-    display:grid;place-items:center;padding:0;
-  }
-  .scan svg{width:28px;height:28px;display:block}
-
-  /* ───────── Wallet pill ───────── */
-  .wallet-row{
-    display:flex;align-items:center;justify-content:center;gap:6px;
-    padding:34px 16px 0;
-  }
-  .wallet-pill{
-    display:inline-flex;align-items:center;gap:8px;
-    background:var(--card);color:#fff;
-    padding:10px 18px;border-radius:999px;
-    font-size:17px;font-weight:500;border:none;cursor:pointer;
-    position:relative;font-family:inherit;
-  }
-  .wallet-pill .chev{opacity:.85}
-  .wallet-pill .dot{
-    position:absolute;top:-1px;right:6px;
-    width:9px;height:9px;border-radius:50%;
-    background:var(--red);box-shadow:0 0 0 2px #000;
-  }
-  .copy-btn{
-    width:36px;height:36px;display:grid;place-items:center;
-    background:transparent;border:none;color:#a8a8ac;cursor:pointer;padding:0;
-  }
-  .copy-btn svg{width:22px;height:22px}
-
-  /* ───────── Balance ───────── */
-  .balance{text-align:center;margin-top:30px}
-  .balance .big{
-    font-size:60px;font-weight:700;letter-spacing:-1.5px;line-height:1;
-    cursor:pointer;
-  }
-  .balance .sub{
-    color:#9a9a9e;margin-top:14px;font-size:16px;font-weight:400;
+  /* ───────── Stage — screenshot.jpg is 1206×2622 ───────── */
+  .stage{
+    position:relative;
+    width:100vw;
+    aspect-ratio:1206 / 2622;
+    margin:0 auto;
+    background:url("screenshot.jpg") center/cover no-repeat var(--bg);
+    overflow:hidden;
+    container-type:size;
   }
 
-  /* ───────── Action row ───────── */
-  .actions{
-    display:grid;grid-template-columns:repeat(4,1fr);
-    gap:14px;padding:34px 22px 0;
-  }
-  .action{
-    display:flex;flex-direction:column;align-items:center;gap:12px;
-    background:transparent;border:none;color:#fff;cursor:pointer;padding:0;
-    font-family:inherit;
-  }
-  .action .tile{
-    width:100%;aspect-ratio:1/1;border-radius:22px;
-    background:var(--tile);display:grid;place-items:center;
-    max-width:80px;
-  }
-  .action.primary .tile{background:var(--green);color:#0a0a0a}
-  .action .tile svg{width:32px;height:32px;stroke-width:2.4;}
-  .action .label{font-size:16px;font-weight:600}
-
-  /* ───────── Promo banner ───────── */
-  .promo{
-    margin:24px 16px 0;
-    background:var(--card);border-radius:22px;
-    padding:14px 18px 14px 14px;
-    display:flex;align-items:center;gap:14px;
-    position:relative;overflow:hidden;min-height:96px;
-  }
-  .promo .corner{
-    position:absolute;top:0;left:0;
-    width:36px;height:36px;background:var(--yellow);
-    border-bottom-right-radius:12px;
-    display:grid;place-items:center;
-  }
-  .promo .corner svg{width:18px;height:18px;color:#1a1a1a}
-  .promo .art{
-    width:74px;height:74px;flex:0 0 74px;margin-left:24px;
-    border-radius:14px;display:grid;place-items:center;
-    overflow:hidden;position:relative;background:#000;
-  }
-  .promo .art svg{width:100%;height:100%;display:block}
-  .promo .txt{flex:1;min-width:0}
-  .promo .txt p{margin:0;font-size:15px;line-height:1.3;font-weight:500;color:#fff}
-  .promo .cta{
-    color:var(--green);font-weight:600;font-size:15px;
-    margin-top:8px;display:inline-flex;align-items:center;gap:8px;
-  }
-  .promo .cta svg{width:16px;height:16px}
-
-  /* dots */
-  .dots{display:flex;justify-content:center;gap:6px;margin-top:18px}
-  .dots span{width:18px;height:4px;border-radius:3px;background:#3a3a3c}
-  .dots span.active{background:#cfcfd2;width:22px}
-
-  /* ───────── Tabs ───────── */
-  .tabs{
-    display:flex;align-items:center;gap:24px;
-    padding:18px 18px 0;position:relative;
-  }
-  .tab{
-    font-size:20px;font-weight:700;color:#5a5a5e;
-    background:none;border:none;cursor:pointer;padding:6px 0 10px;
-    position:relative;font-family:inherit;
-  }
-  .tab.active{color:#fff}
-  .tab.active::after{
-    content:"";position:absolute;left:0;right:0;bottom:0;
-    height:3px;background:var(--green);border-radius:2px;
-  }
-  .tabs .spacer{flex:1}
-  .tabs .icobtn{
-    background:none;border:none;color:#bdbdbf;cursor:pointer;padding:6px;
-  }
-  .tabs .icobtn svg{width:24px;height:24px;display:block}
-
-  /* ───────── Empty state ───────── */
-  .empty{
-    margin:14px 12px 0;
-    background:var(--card);border-radius:22px;
-    padding:30px 18px 22px;
-    text-align:center;
-  }
-  .empty .illust{width:140px;height:140px;margin:0 auto 22px;display:block}
-  .empty h3{
-    margin:0;font-size:20px;font-weight:600;line-height:1.35;color:#fff;
-  }
-  .empty .btn{
-    display:block;width:100%;margin-top:22px;
-    height:54px;border-radius:28px;border:none;cursor:pointer;
-    background:var(--green);color:#0a0a0a;font-size:17px;font-weight:700;
-    font-family:inherit;
-  }
-  .empty .btn.outline{
-    background:transparent;color:var(--green);
-    border:1.5px solid rgba(93,229,142,.4);
-    margin-top:12px;
+  /* On phone: fill viewport */
+  @media (max-width: 500px){
+    body{background:var(--bg)}
+    .stage{ width:100vw; min-height:100vh; }
   }
 
-  /* ───────── Bottom nav ───────── */
-  .navspace{height:110px}
-  .nav{
-    position:fixed;left:0;right:0;bottom:0;
-    background:rgba(0,0,0,.96);
-    backdrop-filter:blur(20px);
-    -webkit-backdrop-filter:blur(20px);
-    padding:6px 6px calc(8px + env(safe-area-inset-bottom));
-    display:grid;grid-template-columns:repeat(5,1fr);
-    align-items:end;
-    border-top:1px solid #0d0d0d;
+  /* On desktop: show in an iPhone frame */
+  @media (min-width: 501px){
+    body{
+      min-height:100vh;
+      display:flex;align-items:center;justify-content:center;
+      padding:24px;
+      background:#0a0a0a;
+    }
+    .stage{
+      width:auto;
+      height:min(900px, calc(100vh - 48px));
+      aspect-ratio:1206 / 2622;
+      border-radius:48px;
+      border:10px solid #1a1a1a;
+      box-shadow:0 30px 80px rgba(0,0,0,.6), 0 0 0 1px #2a2a2a;
+    }
   }
-  .nav .item{
-    background:none;border:none;cursor:pointer;color:#7a7a7e;
-    display:flex;flex-direction:column;align-items:center;gap:5px;
-    padding:8px 0 6px;font-size:12px;font-weight:600;
-    font-family:inherit;
-  }
-  .nav .item svg{width:24px;height:24px;display:block;color:currentColor}
-  .nav .item.active{color:#fff}
-  .nav .item.active .ico-wrap{
-    background:var(--green-soft);
-    border-radius:16px;padding:5px 18px;
-    margin-bottom:1px;
-  }
-  .nav .item.active .ico-wrap svg{color:var(--green)}
-  .nav .center{
-    position:relative;transform:translateY(-18px);
+
+  /* ───────── Overlays — measured PIXEL-EXACT from IMG_9273 ─────────
+     Main "$0.00":  y=22.81%..27.08%, center 24.94%, height 4.27% of stage
+     Sub  "$0.00 (0.00%)":  y=28.22%..29.67%, center 28.95%, height 1.45%
+     Both centered horizontally at x=50%.
+     Cap-height ≈ 0.72 × font-size, so:
+       main font-size  ≈ 4.27 / 0.72 ≈ 5.93cqh
+       sub  font-size  ≈ 1.45 / 0.72 ≈ 2.0cqh
+  */
+
+  .ovl-balance{
+    position:absolute;
+    left:0;right:0;
+    top:22.81%;
+    height:4.27%;
+    z-index:10;
+    display:flex;align-items:center;justify-content:center;
+    background:transparent;     /* base is already blank — no mask needed */
     color:#fff;
+    border:none;cursor:pointer;
+    font-family:inherit;
+    font-weight:700;
+    letter-spacing:-0.04em;
+    padding:0;
+    overflow:visible;
   }
-  .nav .center .circle{
-    width:62px;height:62px;border-radius:50%;
-    background:var(--green);display:grid;place-items:center;
-    box-shadow:0 6px 20px rgba(93,229,142,.35);
+  .ovl-balance span{
+    font-size:5.93cqh;
+    white-space:nowrap;
+    line-height:1;
+    display:inline-block;
+    transform-origin:center;
   }
-  .nav .center .circle svg{width:30px;height:30px;color:#0a0a0a}
-  .nav .center .label{margin-top:6px;font-size:12px;font-weight:600;color:#fff}
 
-  /* ───────── Modal ───────── */
+  .ovl-sub{
+    position:absolute;
+    left:0;right:0;
+    top:28.22%;
+    height:1.45%;
+    z-index:10;
+    display:flex;align-items:center;justify-content:center;
+    background:transparent;
+    color:#9a9a9e;
+    font-family:inherit;
+    font-weight:400;
+    pointer-events:none;
+    overflow:visible;
+  }
+  .ovl-sub span.txt{
+    font-size:2.0cqh;
+    white-space:nowrap;
+    line-height:1;
+  }
+
+  /* Invisible tap target on the gear icon — opens edit sheet */
+  .tap-gear{
+    position:absolute;
+    left:3%;top:7%;
+    width:13%;height:5%;
+    z-index:11;
+    background:transparent;
+    border:none;cursor:pointer;
+  }
+
+  /* ───────── Edit sheet ───────── */
   .modal-backdrop{
     position:fixed;inset:0;background:rgba(0,0,0,.55);
     display:none;align-items:flex-end;justify-content:center;
@@ -256,6 +143,7 @@
     padding:14px 22px 32px;
     padding-bottom:calc(32px + env(safe-area-inset-bottom));
     animation:slide .28s cubic-bezier(.2,.8,.2,1);
+    -webkit-user-select:auto;user-select:auto;
   }
   @keyframes slide{from{transform:translateY(100%)}to{transform:translateY(0)}}
   .sheet .grab{
@@ -263,7 +151,7 @@
     margin:0 auto 14px;
   }
   .sheet h2{margin:4px 0 4px;font-size:22px;font-weight:700}
-  .sheet p.hint{margin:0 0 18px;color:#9a9a9e;font-size:14px}
+  .sheet p.hint{margin:0 0 12px;color:#9a9a9e;font-size:14px}
   .field{margin-top:14px}
   .field label{display:block;font-size:13px;color:#9a9a9e;margin-bottom:8px;font-weight:500}
   .field input{
@@ -284,8 +172,8 @@
 
   /* install hint */
   .install-hint{
-    position:fixed;left:12px;right:12px;bottom:120px;
-    background:var(--card);border:1px solid #2a2a2c;border-radius:18px;
+    position:fixed;left:12px;right:12px;bottom:18px;
+    background:#1c1c1e;border:1px solid #2a2a2c;border-radius:16px;
     padding:12px 14px;display:none;align-items:center;gap:10px;z-index:80;
     font-size:13px;color:#ddd;
   }
@@ -295,255 +183,23 @@
 </head>
 <body>
 
-<!-- ───────── Top bar ───────── -->
-<div class="topbar">
-  <button class="gear" id="avatarBtn" aria-label="Edit">
-    <!-- gear -->
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-      <circle cx="12" cy="12" r="3"/>
-      <path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.04 1.56V21a2 2 0 0 1-4 0v-.08a1.7 1.7 0 0 0-1.11-1.56 1.7 1.7 0 0 0-1.87.34l-.06.06A2 2 0 1 1 4.13 16.93l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.56-1.04H3a2 2 0 0 1 0-4h.08a1.7 1.7 0 0 0 1.56-1.11 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34h.06a1.7 1.7 0 0 0 1.04-1.56V3a2 2 0 0 1 4 0v.08a1.7 1.7 0 0 0 1.04 1.56 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87v.06a1.7 1.7 0 0 0 1.56 1.04H21a2 2 0 0 1 0 4h-.08a1.7 1.7 0 0 0-1.56 1.04Z"/>
-    </svg>
-    <span class="dot"></span>
-  </button>
+<div class="stage" id="stage">
+  <!-- Invisible tap target on the gear icon, opens the editor -->
+  <button class="tap-gear" id="tapGear" aria-label="Edit balance"></button>
 
-  <div class="search">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-      <circle cx="11" cy="11" r="7"/>
-      <path d="m20 20-3.5-3.5"/>
-    </svg>
-    <span>Search</span>
-  </div>
+  <!-- Dynamic main balance, exactly where the original $0.00 sat -->
+  <button class="ovl-balance" id="balanceBtn"><span id="balanceBig">$0.00</span></button>
 
-  <button class="scan" aria-label="Scan">
-    <!-- scan frame -->
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M4 9V6a2 2 0 0 1 2-2h3"/>
-      <path d="M20 9V6a2 2 0 0 0-2-2h-3"/>
-      <path d="M4 15v3a2 2 0 0 0 2 2h3"/>
-      <path d="M20 15v3a2 2 0 0 1-2 2h-3"/>
-    </svg>
-  </button>
+  <!-- Dynamic sub-balance ($delta (%)) -->
+  <div class="ovl-sub"><span class="txt"><span id="balanceDelta">$0.00</span>&nbsp;(<span id="balancePct">0.00</span>%)</span></div>
 </div>
-
-<!-- ───────── Wallet pill ───────── -->
-<div class="wallet-row">
-  <button class="wallet-pill" id="walletPill">
-    <span id="walletName">Основной кошелек</span>
-    <svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-      <path d="m9 6 6 6-6 6"/>
-    </svg>
-    <span class="dot"></span>
-  </button>
-  <button class="copy-btn" aria-label="Copy address">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-      <rect x="9" y="9" width="11" height="11" rx="2.5"/>
-      <path d="M5 15V6a2 2 0 0 1 2-2h9"/>
-    </svg>
-  </button>
-</div>
-
-<!-- ───────── Balance ───────── -->
-<div class="balance">
-  <div class="big" id="balanceBig">$0.00</div>
-  <div class="sub"><span id="balanceDelta">$0.00</span> (<span id="balancePct">0.00</span>%)</div>
-</div>
-
-<!-- ───────── Action row ───────── -->
-<div class="actions">
-  <button class="action">
-    <span class="tile">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M7 17 17 7"/>
-        <path d="M8 7h9v9"/>
-      </svg>
-    </span>
-    <span class="label">Send</span>
-  </button>
-  <button class="action">
-    <span class="tile">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M12 5v14"/>
-        <path d="m6 13 6 6 6-6"/>
-      </svg>
-    </span>
-    <span class="label">Receive</span>
-  </button>
-  <button class="action">
-    <span class="tile">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M4 12a8 8 0 0 1 13.7-5.7L20 8"/>
-        <path d="M20 4v4h-4"/>
-        <path d="M20 12a8 8 0 0 1-13.7 5.7L4 16"/>
-        <path d="M4 20v-4h4"/>
-      </svg>
-    </span>
-    <span class="label">Swap</span>
-  </button>
-  <button class="action primary">
-    <span class="tile">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round">
-        <path d="M12 5v14"/>
-        <path d="M5 12h14"/>
-      </svg>
-    </span>
-    <span class="label">Buy</span>
-  </button>
-</div>
-
-<!-- ───────── Promo banner ───────── -->
-<div class="promo">
-  <div class="corner">
-    <svg viewBox="0 0 24 24" fill="currentColor">
-      <path d="M12 2s5 5.5 5 10a5 5 0 1 1-10 0c0-2 1.2-3.6 2.5-5C11 5.5 12 4 12 2Z"/>
-    </svg>
-  </div>
-  <div class="art" aria-hidden="true">
-    <svg viewBox="0 0 100 100">
-      <defs>
-        <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stop-color="#7af0ff"/>
-          <stop offset=".5" stop-color="#3e84ff"/>
-          <stop offset="1" stop-color="#b35bff"/>
-        </linearGradient>
-        <linearGradient id="g2" x1="0" y1="1" x2="1" y2="0">
-          <stop offset="0" stop-color="#ff8fd6"/>
-          <stop offset="1" stop-color="#5f48ff"/>
-        </linearGradient>
-      </defs>
-      <path d="M20 55c0-12 18-22 30-10s30 22 30 10S62 33 50 45 20 67 20 55Z"
-            fill="none" stroke="url(#g1)" stroke-width="9" stroke-linecap="round"/>
-      <path d="M22 58c2 8 14 12 22 6" fill="none" stroke="url(#g2)" stroke-width="5" stroke-linecap="round"/>
-      <circle cx="44" cy="40" r="7" fill="#dff7ff" stroke="#1c1c2e" stroke-width="2"/>
-      <circle cx="44" cy="40" r="2.5" fill="#1c1c2e"/>
-    </svg>
-  </div>
-  <div class="txt">
-    <p>Hyperliquid live with 200+ markets, 0% markup on fees</p>
-    <span class="cta">Explore now
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M5 12h14"/><path d="m13 6 6 6-6 6"/>
-      </svg>
-    </span>
-  </div>
-</div>
-
-<div class="dots"><span class="active"></span><span></span></div>
-
-<!-- ───────── Tabs ───────── -->
-<div class="tabs">
-  <button class="tab active">Crypto</button>
-  <button class="tab">Watchlist</button>
-  <button class="tab">NFTs</button>
-  <div class="spacer"></div>
-  <button class="icobtn" aria-label="History">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M3 12a9 9 0 1 0 3-6.7"/>
-      <path d="M3 4v5h5"/>
-      <path d="M12 7v5l3 2"/>
-    </svg>
-  </button>
-  <button class="icobtn" aria-label="Filters">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
-      <path d="M4 7h10"/><circle cx="17" cy="7" r="2.2"/>
-      <path d="M20 13H10"/><circle cx="7" cy="13" r="2.2"/>
-      <path d="M4 19h10"/><circle cx="17" cy="19" r="2.2"/>
-    </svg>
-  </button>
-</div>
-
-<!-- ───────── Empty state ───────── -->
-<div class="empty">
-  <svg class="illust" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <defs>
-      <linearGradient id="wg" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0" stop-color="#aef9d6"/>
-        <stop offset="1" stop-color="#3ddc97"/>
-      </linearGradient>
-    </defs>
-    <path d="M30 70 L150 30 L160 70 Z" fill="#1a1a1a" stroke="#5de58e" stroke-width="2"/>
-    <g stroke="#5de58e" stroke-width="1" opacity=".6">
-      <line x1="50" y1="60" x2="155" y2="35"/>
-      <line x1="70" y1="50" x2="158" y2="50"/>
-    </g>
-    <circle cx="120" cy="36" r="3" fill="#5de58e"/>
-    <path d="M120 36 L120 26" stroke="#5de58e" stroke-width="1.5"/>
-    <path d="M118 26 L125 22 L122 30 Z" fill="#5de58e"/>
-    <rect x="25" y="65" width="135" height="100" rx="8" fill="url(#wg)" stroke="#1a1a1a" stroke-width="2"/>
-    <rect x="55" y="80" width="70" height="40" rx="4" fill="#2bd29a" stroke="#1a1a1a" stroke-width="2"/>
-    <g fill="#1a1a1a">
-      <rect x="40" y="135" width="22" height="6" rx="1"/>
-      <rect x="48" y="127" width="6" height="22" rx="1"/>
-    </g>
-    <circle cx="120" cy="140" r="5" fill="#1a1a1a"/>
-    <circle cx="135" cy="135" r="5" fill="#1a1a1a"/>
-    <circle cx="170" cy="115" r="14" fill="#aef9d6" stroke="#1a1a1a" stroke-width="2"/>
-    <circle cx="170" cy="115" r="6" fill="#1a1a1a"/>
-  </svg>
-
-  <h3>Fund your wallet<br/>to start trading and earning</h3>
-
-  <button class="btn">Fund</button>
-  <button class="btn outline">Receive crypto</button>
-</div>
-
-<div class="navspace"></div>
-
-<!-- ───────── Bottom nav ───────── -->
-<nav class="nav">
-  <button class="item active">
-    <span class="ico-wrap">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M3 11 12 3l9 8"/>
-        <path d="M5 10v10h14V10"/>
-      </svg>
-    </span>
-    <span>Home</span>
-  </button>
-  <button class="item">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M3 17 9 11l4 4 8-8"/>
-      <path d="M14 4h7v7"/>
-    </svg>
-    <span>Trending</span>
-  </button>
-  <div class="item center">
-    <div class="circle">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M4 9h13l-3-3"/>
-        <path d="M20 15H7l3 3"/>
-      </svg>
-    </div>
-    <span class="label">Trade</span>
-  </div>
-  <button class="item">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-      <rect x="3" y="8" width="18" height="5" rx="1"/>
-      <path d="M12 8v13"/>
-      <path d="M5 13v8h14v-8"/>
-      <path d="M12 8c-2-3-6-3-6-1s2 2 6 1Z"/>
-      <path d="M12 8c2-3 6-3 6-1s-2 2-6 1Z"/>
-    </svg>
-    <span>Rewards</span>
-  </button>
-  <button class="item">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-      <circle cx="12" cy="12" r="9"/>
-      <path d="m15 9-2 5-5 2 2-5 5-2Z"/>
-    </svg>
-    <span>Discover</span>
-  </button>
-</nav>
 
 <!-- ───────── Edit sheet ───────── -->
 <div class="modal-backdrop" id="modal">
   <form class="sheet" id="editForm">
     <div class="grab"></div>
-    <h2>Изменить кошелек</h2>
-    <p class="hint">Поменяй имя и баланс — данные сохраняются на устройстве.</p>
-    <div class="field">
-      <label for="nameInp">Имя кошелька</label>
-      <input id="nameInp" type="text" maxlength="40" autocomplete="off" />
-    </div>
+    <h2>Изменить баланс</h2>
+    <p class="hint">Введи сумму и процент изменения — сохранится на устройстве.</p>
     <div class="field">
       <label for="balInp">Баланс, $</label>
       <input id="balInp" type="text" inputmode="decimal" autocomplete="off" />
@@ -565,8 +221,8 @@
 </div>
 
 <script>
-  const STORE_KEY = 'wallet-state-v1';
-  const defaultState = { name:'Основной кошелек', balance:0, pct:0 };
+  const STORE_KEY = 'wallet-state-v2';
+  const defaultState = { balance:0, pct:0 };
   const loadState = ()=>{ try{ return {...defaultState, ...JSON.parse(localStorage.getItem(STORE_KEY)||'{}')}; }catch(e){ return {...defaultState}; } };
   const saveState = (s)=> localStorage.setItem(STORE_KEY, JSON.stringify(s));
   const state = loadState();
@@ -579,51 +235,47 @@
   const fmtPct = (n)=> (Number(n)||0).toFixed(2);
 
   function render(){
-    document.getElementById('walletName').textContent = state.name || 'Основной кошелек';
-    document.getElementById('balanceBig').textContent = fmtMoney(state.balance);
+    const bigEl = document.getElementById('balanceBig');
+    bigEl.textContent = fmtMoney(state.balance);
     const delta = (Number(state.balance)||0) * (Number(state.pct)||0) / 100;
     document.getElementById('balanceDelta').textContent = fmtMoney(delta);
     document.getElementById('balancePct').textContent = fmtPct(state.pct);
+    // Auto-shrink long balance to fit stage width
+    requestAnimationFrame(()=>{
+      bigEl.style.transform = 'scale(1)';
+      const stage = document.getElementById('stage');
+      const avail = stage.clientWidth * 0.86;   // leave a margin
+      const w = bigEl.scrollWidth;
+      if (w > avail && w > 0){
+        const k = avail / w;
+        bigEl.style.transform = `scale(${k.toFixed(3)})`;
+      }
+    });
   }
   render();
+  window.addEventListener('resize', render);
 
   const modal = document.getElementById('modal');
   const openEdit = ()=>{
-    document.getElementById('nameInp').value = state.name;
-    document.getElementById('balInp').value  = state.balance;
-    document.getElementById('pctInp').value  = state.pct;
+    document.getElementById('balInp').value = state.balance;
+    document.getElementById('pctInp').value = state.pct;
     modal.classList.add('open');
-    setTimeout(()=> document.getElementById('nameInp').focus(), 200);
+    setTimeout(()=> document.getElementById('balInp').focus(), 200);
   };
   const closeEdit = ()=> modal.classList.remove('open');
 
-  document.getElementById('avatarBtn').addEventListener('click', openEdit);
-  document.getElementById('balanceBig').addEventListener('click', openEdit);
+  document.getElementById('balanceBtn').addEventListener('click', openEdit);
+  document.getElementById('tapGear').addEventListener('click', openEdit);
   document.getElementById('cancelBtn').addEventListener('click', closeEdit);
   modal.addEventListener('click', (e)=>{ if(e.target===modal) closeEdit(); });
 
   document.getElementById('editForm').addEventListener('submit', (e)=>{
     e.preventDefault();
-    const name = document.getElementById('nameInp').value.trim() || 'Основной кошелек';
-    const balRaw = document.getElementById('balInp').value.replace(/\s|\$/g,'').replace(',','.');
+    const balRaw = document.getElementById('balInp').value.replace(/\s|\$|,/g,'');
     const pctRaw = document.getElementById('pctInp').value.replace(/\s|%/g,'').replace(',','.');
-    state.name = name;
     state.balance = parseFloat(balRaw); if(!isFinite(state.balance)) state.balance = 0;
     state.pct     = parseFloat(pctRaw); if(!isFinite(state.pct))     state.pct     = 0;
     saveState(state); render(); closeEdit();
-  });
-
-  document.querySelectorAll('.nav .item:not(.center)').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      document.querySelectorAll('.nav .item').forEach(b=>b.classList.remove('active'));
-      btn.classList.add('active');
-    });
-  });
-  document.querySelectorAll('.tabs .tab').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      document.querySelectorAll('.tabs .tab').forEach(b=>b.classList.remove('active'));
-      btn.classList.add('active');
-    });
   });
 
   (function(){
@@ -638,10 +290,11 @@
     });
   })();
 </script>
-
 <script>
-  if('serviceWorker' in navigator){
-    navigator.serviceWorker.register('./sw.js');
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js').catch(() => {});
+    });
   }
 </script>
 </body>
